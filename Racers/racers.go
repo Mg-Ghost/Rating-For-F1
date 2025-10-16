@@ -77,7 +77,7 @@ func GetRacersById(w http.ResponseWriter, id int){
 	err := row.Scan(&racers.ID, &racers.Country, &racers.Nameracers, &racers.Lastnameracers, &racers.Driveteam)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				json.NewEncoder(w).Encode(map[string]string{"error": "Progress not found"}) 
+				json.NewEncoder(w).Encode(map[string]string{"error": "Racers not found"}) 
 			} else {
 				json.NewEncoder(w).Encode(map[string]string{"error": "Database error: " + err.Error()})
 			}

@@ -53,7 +53,7 @@ func main() {
     teamsf1.InitDB(db)
     top15racers.InitDB(db)
 
-
+// Маршруты для Racers
 	http.HandleFunc("/racers", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
@@ -70,6 +70,25 @@ func main() {
     default:
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
     }
+	})
+
+// Маршруты для Teams
+	http.HandleFunc("/teams", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			teamsf1.ReadTeamF1(w,r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/teams/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			teamsf1.GetTeamsWrapper(w,r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
 	})
 
 	fmt.Println("Сервер запущен на http://localhost:8182")
