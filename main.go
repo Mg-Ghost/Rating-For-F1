@@ -72,6 +72,25 @@ func main() {
     }
 	})
 
+// Маршруты для Топ 15
+		http.HandleFunc("/Topracers", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			top15racers.ReadTopRacers(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/Topracers/", func(w http.ResponseWriter, r *http.Request) {
+    switch r.Method {
+    case "GET":
+        top15racers.GetTopRacersWrapper(w, r)
+    default:
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    }
+	})
+
 // Маршруты для Teams
 	http.HandleFunc("/teams", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
