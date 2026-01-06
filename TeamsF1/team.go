@@ -6,9 +6,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"RatingForF1/models"
+	"RatingForF1/database"
 )
 
 func ReadTeamF1(w http.ResponseWriter, r *http.Request) {
+
+	db := database.GetDB()
+
 	if db == nil {
 		json.NewEncoder(w).Encode((map[string]string{"error": "Database not initialized"}))
 		return
@@ -27,9 +32,9 @@ func ReadTeamF1(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	teamsList := make([]Teams, 0)
+	teamsList := make([]models.Teams, 0)
 	for rows.Next() {
-		var teams Teams
+		var teams models.Teams
 		err := rows.Scan(&teams.ID, &teams.Nameteam)
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Error reading rows" + err.Error()})
@@ -64,6 +69,7 @@ func GetTeamsWrapper(w http.ResponseWriter, r *http.Request){
 
 func GetTeamsID(w http.ResponseWriter, id int){
 	w.Header().Set("Content-Type", "application/json; charset = utf-8")
+	db := database.GetDB()
 
 	if db == nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Database not initialized"})
@@ -72,7 +78,7 @@ func GetTeamsID(w http.ResponseWriter, id int){
 
 	row := db.QueryRow("SELECT * FROM teamsf1 WHERE id = $1", id)
 
-	teams := Teams{}
+	teams := models.Teams{}
 	err := row.Scan(&teams.ID, &teams.Nameteam)
 	if err != nil {
 		if err == sql.ErrNoRows {

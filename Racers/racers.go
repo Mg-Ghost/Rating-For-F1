@@ -6,19 +6,19 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"RatingForF1/models"
+	"RatingForF1/database"
+
 )
 
 func ReadRacers(w http.ResponseWriter, r *http.Request) {
-	if db == nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Database not initialized"})
-		return
-	}
 
 	if r.Method != "GET"{
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
 		return
 	}
+	db := database.GetDB()
 
 	rows, err := db.Query("SELECT * FROM racersf1")
 	if err != nil {
@@ -27,9 +27,9 @@ func ReadRacers(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	racersList := make([]Racers, 0)
+	racersList := make([]models.Racers, 0)
 	for rows.Next() {
-		var racers Racers
+		var racers models.Racers
 		err := rows.Scan(&racers.ID, &racers.Country, &racers.Nameracers, &racers.Lastnameracers, &racers.Driveteam)
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Error raeding row " + err.Error()})
@@ -65,6 +65,7 @@ func GetRacersWrapper(w http.ResponseWriter, r *http.Request){
 
 func GetRacersById(w http.ResponseWriter, id int){
 	w.Header().Set("Content-Type", "application/json; charset = utf-8")
+	db := database.GetDB()
 
 	if db == nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Database not initialized"})
@@ -73,7 +74,7 @@ func GetRacersById(w http.ResponseWriter, id int){
 
 	row := db.QueryRow("SELECT *  FROM racersf1 WHERE id = $1", id)
 
-	racers := Racers{}
+	racers := models.Racers{}
 	err := row.Scan(&racers.ID, &racers.Country, &racers.Nameracers, &racers.Lastnameracers, &racers.Driveteam)
 		if err != nil {
 			if err == sql.ErrNoRows {
