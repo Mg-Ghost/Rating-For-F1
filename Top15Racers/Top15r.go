@@ -20,7 +20,7 @@ func ReadTopRacers(w http.ResponseWriter, r *http.Request) {
 
 	db := database.GetDB()
 
-	rows, err := db.Query("SELECT * FROM rating_top_15 LIMIT 15")
+	rows, err := db.Query("SELECT * FROM topracerc LIMIT 15")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Database error " + err.Error()})
 		return
@@ -72,7 +72,7 @@ func GetTopRacersById(w http.ResponseWriter, id int) {
 		return
 	}
 
-	row := db.QueryRow("SELECT * FROM rating_top_15 ORDER BY id LIMIT 15;", id)
+	row := db.QueryRow("SELECT * FROM topracerc ORDER BY id LIMIT 15;", id)
 
 	Top := models.Topracerc{}
 	err := row.Scan(&Top.ID, &Top.Teamracers, &Top.Nameracer, &Top.Lastnameracer, &Top.Points)

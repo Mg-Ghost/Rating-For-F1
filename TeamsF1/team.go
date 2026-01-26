@@ -25,7 +25,7 @@ func ReadTeamF1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows,err := db.Query("select * from teamsf1")
+	rows,err := db.Query("select * from teams")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Database error" + err.Error()})
 		return
@@ -76,7 +76,7 @@ func GetTeamsID(w http.ResponseWriter, id int){
 		return
 	}
 
-	row := db.QueryRow("SELECT * FROM teamsf1 WHERE id = $1", id)
+	row := db.QueryRow("SELECT * FROM teams WHERE id = $1", id)
 
 	teams := models.Teams{}
 	err := row.Scan(&teams.ID, &teams.Nameteam)

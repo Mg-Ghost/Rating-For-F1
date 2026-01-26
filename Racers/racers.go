@@ -20,7 +20,7 @@ func ReadRacers(w http.ResponseWriter, r *http.Request) {
 	}
 	db := database.GetDB()
 
-	rows, err := db.Query("SELECT * FROM racersf1")
+	rows, err := db.Query("SELECT * FROM racers")
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Database error " + err.Error()})
 		return
@@ -72,7 +72,7 @@ func GetRacersById(w http.ResponseWriter, id int){
 		return
 	}
 
-	row := db.QueryRow("SELECT *  FROM racersf1 WHERE id = $1", id)
+	row := db.QueryRow("SELECT *  FROM racers WHERE id = $1", id)
 
 	racers := models.Racers{}
 	err := row.Scan(&racers.ID, &racers.Country, &racers.Nameracers, &racers.Lastnameracers, &racers.Driveteam)
