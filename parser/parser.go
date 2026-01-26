@@ -1,4 +1,4 @@
-package parser
+package main
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	rating, err := GetTexts("go get github.com/PuerkitoBio/goquery", ".post_body")
+	rating, err := GetTexts("https://www.f1news.ru/Championship/2025/personpoints.shtml", ".post_body")
 	if err != nil {
 		log.Println(err)
 	}
