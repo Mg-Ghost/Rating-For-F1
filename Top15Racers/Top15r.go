@@ -11,52 +11,49 @@ import (
 )
 
 func ReadTopRacers(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != "GET" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+	if r.Method != http.MethodGet {
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	db := database.GetDB()
 
-	rows, err := db.Query("SELECT * FROM topracerc LIMIT 15")
+	rows, err := db.Query("SELECT id, teamracers, nameracer, lastnameracer, points FROM topracerc LIMIT 15")
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Database error " + err.Error()})
+		writeJSONError(w, http.StatusInternalServerError, "Database error: "+err.Error())
 		return
 	}
 	defer rows.Close()
 
-	TopList := make([]models.Topracerc, 0)
+	topList := make([]models.Topracerc, 0, 15)
+
 	for rows.Next() {
-		var Top models.Topracerc
-		err := rows.Scan(&Top.ID, &Top.Teamracers, &Top.Nameracer, &Top.Lastnameracer, &Top.Points)
-		if err != nil {
-			json.NewEncoder(w).Encode(map[string]string{"error": "Error raeding row " + err.Error()})
+		var top models.Topracerc
+		if err := rows.Scan(&top.ID, &top.Teamracers, &top.Nameracer, &top.Lastnameracer, &top.Points); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Error reading row: "+err.Error())
 			return
 		}
-		TopList = append(TopList, Top)
+		topList = append(topList, top)
 	}
-	json.NewEncoder(w).Encode(TopList)
+
+	writeJSON(w, http.StatusOK, topList)
 }
 
 func GetTopRacersWrapper(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset = utf-8")
-
-	if r.Method != "GET" {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+	if r.Method != http.MethodGet {
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	path := strings.TrimPrefix(r.URL.Path, "/Topracers/")
 	if path == "" {
-		json.NewEncoder(w).Encode(map[string]string{"error": "ID invalid requred"})
+		writeJSONError(w, http.StatusBadRequest, "ID is required")
 		return
 	}
 
 	idInt, err := strconv.Atoi(path)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid ID"})
+		writeJSONError(w, http.StatusBadRequest, "Invalid ID")
 		return
 	}
 
@@ -64,26 +61,37 @@ func GetTopRacersWrapper(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTopRacersById(w http.ResponseWriter, id int) {
-	w.Header().Set("Content-Type", "application/json; charset = utf-8")
 	db := database.GetDB()
-
 	if db == nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Database not initialized"})
+		writeJSONError(w, http.StatusInternalServerError, "Database not initialized")
 		return
 	}
 
-	row := db.QueryRow("SELECT * FROM topracerc ORDER BY id LIMIT 15;", id)
+	// FIX: теперь реально используем id
+	row := db.QueryRow("SELECT id, teamracers, nameracer, lastnameracer, points FROM topracerc WHERE id = ?", id)
 
-	Top := models.Topracerc{}
-	err := row.Scan(&Top.ID, &Top.Teamracers, &Top.Nameracer, &Top.Lastnameracer, &Top.Points)
+	var top models.Topracerc
+	err := row.Scan(&top.ID, &top.Teamracers, &top.Nameracer, &top.Lastnameracer, &top.Points)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			json.NewEncoder(w).Encode(map[string]string{"error": "Racers not found"})
+			writeJSONError(w, http.StatusNotFound, "Racer not found")
 		} else {
-			json.NewEncoder(w).Encode(map[string]string{"error": "Database error: " + err.Error()})
+			writeJSONError(w, http.StatusInternalServerError, "Database error: "+err.Error())
 		}
 		return
 	}
 
-	json.NewEncoder(w).Encode(Top)
+	writeJSON(w, http.StatusOK, top)
+}
+
+// --- helpers (не ломают архитектуру, но убирают дублирование) ---
+
+func writeJSON(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
+}
+
+func writeJSONError(w http.ResponseWriter, status int, message string) {
+	writeJSON(w, status, map[string]string{"error": message})
 }
